@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tennessee EV Savings Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .calculator-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        p.subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .results {
+            background: #e8f6f3;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #1abc9c;
+        }
+        .result-item {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        .result-item span {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .highlight {
+            font-size: 1.3em;
+            color: #16a085;
+            font-weight: bold;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #c8e6c9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator-container">
+    <h2>Tennessee EV Savings Calculator</h2>
+    <p class="subtitle">Based on 2025 TN EV Owners Survey Averages</p>
+
+    <div class="grid">
+        <div class="inputs">
+            <div class="input-group">
+                <label for="annualMiles">Annual Miles Driven</label>
+                <input type="number" id="annualMiles" value="12730" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label for="gasPrice">Gas Price ($/gallon)</label>
+                <input type="number" id="gasPrice" step="0.01" value="3.00" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label for="iceMpg">Comparable Gas Car MPG</label>
+                <input type="number" id="iceMpg" value="25" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label for="elecRate">Electricity Rate ($/kWh)</label>
+                <input type="number" id="elecRate" step="0.01" value="0.12" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label for="evEff">EV Efficiency (mi/kWh)</label>
+                <input type="number" id="evEff" step="0.01" value="3.11" oninput="calculate()">
+            </div>
+        </div>
+
+        <div class="results">
+            <div class="result-item">Annual Gas Cost: $<span id="resGasCost">0</span></div>
+            <div class="result-item">Annual EV Charging Cost: $<span id="resEvCost">0</span></div>
+            <div class="result-item highlight">Net Financial Savings: $<span id="resSavings">0</span> / year</div>
+            
+            <div style="margin: 20px 0; border-bottom: 1px solid #ccc;"></div>
+            
+            <div class="result-item">Gas CO2 Emissions: <span id="resGasCo2">0</span> kg</div>
+            <div class="result-item">EV Grid CO2 Emissions: <span id="resEvCo2">0</span> kg</div>
+            <div class="result-item highlight">Net CO2 Reduction: <span id="resCo2Reduction">0</span> kg / year</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Constants for TN grid and Gas CO2
+    const GRID_CO2_INTENSITY = 0.29; // kg per kWh
+    const GAS_CO2_INTENSITY = 8.89;  // kg per gallon
+
+    function calculate() {
+        // Get input values
+        const miles = parseFloat(document.getElementById('annualMiles').value) || 0;
+        const gasPrice = parseFloat(document.getElementById('gasPrice').value) || 0;
+        const mpg = parseFloat(document.getElementById('iceMpg').value) || 1; // prevent div by zero
+        const rate = parseFloat(document.getElementById('elecRate').value) || 0;
+        const evEff = parseFloat(document.getElementById('evEff').value) || 1;
+
+        // Cost Calculations
+        const gasCost = (miles / mpg) * gasPrice;
+        const evCost = (miles / evEff) * rate;
+        const savings = gasCost - evCost;
+
+        // CO2 Calculations
+        const gasCo2 = (miles / mpg) * GAS_CO2_INTENSITY;
+        const evCo2 = (miles / evEff) * GRID_CO2_INTENSITY;
+        const co2Reduction = gasCo2 - evCo2;
+
+        // Update UI
+        document.getElementById('resGasCost').innerText = gasCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('resEvCost').innerText = evCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('resSavings').innerText = savings.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        document.getElementById('resGasCo2').innerText = gasCo2.toLocaleString(undefined, {maximumFractionDigits: 0});
+        document.getElementById('resEvCo2').innerText = evCo2.toLocaleString(undefined, {maximumFractionDigits: 0});
+        document.getElementById('resCo2Reduction').innerText = co2Reduction.toLocaleString(undefined, {maximumFractionDigits: 0});
+    }
+
+    // Run once on load
+    calculate();
+</script>
+
+</body>
+</html>
